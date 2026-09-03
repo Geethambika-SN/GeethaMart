@@ -1,0 +1,30 @@
+# Build files
+build/
+cmake-build-*/
+out/
+
+# vcpkg
+vcpkg_installed/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Compiled files
+*.exe
+*.dll
+*.o
+*.obj
+*.a
+*.lib
+
+# Visual Studio Code
+.vscode/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
