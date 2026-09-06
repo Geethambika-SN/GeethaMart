@@ -1,0 +1,40 @@
+.navbar {
+  background: white;
+  padding: 18px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navbar h2 {
+  color: #2e7d32;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #222;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.content {
+  text-align: center;
+  padding-top: 80px;
+}
+
+.nav-links a:last-child {
+  background: #2e7d32;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 6px;
+}
+
+.nav-links a:last-child:hover {
+  background: #1b5e20;
+}
