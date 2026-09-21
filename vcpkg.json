@@ -2,11 +2,8 @@
     "name": "geethamart",
     "version-string": "0.1.0",
     "dependencies": [
-        "drogon",
-        "libpqxx",
         "nlohmann-json",
         "libsodium",
-        "spdlog",
         "gtest"
     ]
 }

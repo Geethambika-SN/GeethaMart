@@ -1,79 +1,97 @@
 #include <iostream>
-#include <vector>
 
-#include "model/Product.h"
-#include "controller/ProductController.h"
+#include "controller/UserController.h"
 
 int main()
 {
-    std::cout << "GeethaMart Backend is starting..." << std::endl;
-
-    ProductController controller;
-
-    // Create test product
-    Product product;
-
-    product.name = "Delete Test Product";
-    product.price = 200.00;
-    product.quantity = 10;
-
-    int sellerId = 3;
-
-    bool created = controller.createProduct(product, sellerId);
-
-    if (!created)
-    {
-        std::cout << "Product creation failed!" << std::endl;
-        return 1;
-    }
-
-    std::cout << "Product creation successful!" << std::endl;
-
-    // Get the newly created product
-    std::vector<Product> products = controller.getAllProducts();
-
-    if (products.empty())
-    {
-        std::cout << "No products found!" << std::endl;
-        return 1;
-    }
-
-    int productId = products.back().id;
-
-    std::cout << "\nCreated Product:" << std::endl;
-
-    Product createdProduct = controller.getProductById(productId);
-
-    std::cout << "ID: " << createdProduct.id
-              << " | Name: " << createdProduct.name
-              << " | Price: " << createdProduct.price
-              << " | Quantity: " << createdProduct.quantity
+    std::cout << "GeethaMart Backend is starting..."
               << std::endl;
 
-    // Delete product
-    bool deleted = controller.deleteProduct(productId);
+    UserController controller;
 
-    if (deleted)
+    // --------------------------------------------------
+    // Test ADMIN Registration
+    // --------------------------------------------------
+
+    User admin;
+
+    admin.name = "Test Admin";
+    admin.email = "testadmin@geethamart.com";
+    admin.password = "Admin@123";
+    admin.role = "ADMIN";
+
+    std::cout << "\nTesting ADMIN registration..."
+              << std::endl;
+
+    bool adminRegistered =
+        controller.registerUser(admin);
+
+    if (adminRegistered)
     {
-        std::cout << "\nProduct deletion successful!" << std::endl;
+        std::cout << "ADMIN registration successful!"
+                  << std::endl;
     }
     else
     {
-        std::cout << "\nProduct deletion failed!" << std::endl;
-        return 1;
+        std::cout << "ADMIN already exists or registration failed."
+                  << std::endl;
     }
 
-    // Verify product was deleted
-    Product deletedProduct = controller.getProductById(productId);
+    // --------------------------------------------------
+    // Test ADMIN Login
+    // --------------------------------------------------
 
-    if (deletedProduct.id == 0)
+    std::cout << "\nTesting ADMIN login..."
+              << std::endl;
+
+    User loggedInAdmin =
+        controller.loginUser(
+            "testadmin@geethamart.com",
+            "Admin@123");
+
+    if (loggedInAdmin.id != 0 &&
+        loggedInAdmin.role == "ADMIN")
     {
-        std::cout << "Delete verification successful!" << std::endl;
+        std::cout << "ADMIN login successful!"
+                  << std::endl;
+
+        std::cout << "ID: "
+                  << loggedInAdmin.id
+                  << " | Name: "
+                  << loggedInAdmin.name
+                  << " | Email: "
+                  << loggedInAdmin.email
+                  << " | Role: "
+                  << loggedInAdmin.role
+                  << std::endl;
     }
     else
     {
-        std::cout << "Delete verification failed!" << std::endl;
-        return 1;
+        std::cout << "ADMIN login failed."
+                  << std::endl;
+    }
+
+    // --------------------------------------------------
+    // Test ADMIN Wrong Password
+    // --------------------------------------------------
+
+    std::cout << "\nTesting ADMIN login with wrong password..."
+              << std::endl;
+
+    User wrongPasswordAdmin =
+        controller.loginUser(
+            "testadmin@geethamart.com",
+            "WrongPassword123");
+
+    if (wrongPasswordAdmin.id == 0)
+    {
+        std::cout << "ADMIN wrong password rejected successfully!"
+                  << std::endl;
+    }
+    else
+    {
+        std::cout << "ERROR: ADMIN wrong password was accepted!"
+                  << std::endl;
     }
 
     return 0;

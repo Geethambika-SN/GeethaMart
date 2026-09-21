@@ -1,0 +1,121 @@
+#include "UserRepository.h"
+#include "../util/DatabaseConnection.h"
+
+#include <iostream>
+#include <string>
+#include <libpq-fe.h>
+
+bool UserRepository::registerUser(const User &user)
+{
+    DatabaseConnection database;
+
+    if (!database.connect())
+    {
+        std::cerr << "Failed to connect to database." << std::endl;
+        return false;
+    }
+
+    std::string query =
+        "INSERT INTO users (name, email, password_hash, role) "
+        "VALUES ($1, $2, $3, $4);";
+
+    const char* values[4];
+
+    values[0] = user.name.c_str();
+    values[1] = user.email.c_str();
+    values[2] = user.passwordHash.c_str();
+    values[3] = user.role.c_str();
+
+    PGresult* result = PQexecParams(
+        database.getConnection(),
+        query.c_str(),
+        4,
+        nullptr,
+        values,
+        nullptr,
+        nullptr,
+        0
+    );
+
+    if (PQresultStatus(result) == PGRES_COMMAND_OK)
+    {
+        std::cout << "User registered successfully!"
+                  << std::endl;
+
+        PQclear(result);
+        return true;
+    }
+
+    std::cerr << "Failed to register user: "
+              << PQerrorMessage(database.getConnection())
+              << std::endl;
+
+    PQclear(result);
+
+    return false;
+}
+
+User UserRepository::findUserByEmail(const std::string &email)
+{
+    User user;
+
+    DatabaseConnection database;
+
+    if (!database.connect())
+    {
+        std::cerr << "Failed to connect to database." << std::endl;
+        return user;
+    }
+
+    std::string query =
+        "SELECT id, name, email, password_hash, role "
+        "FROM users "
+        "WHERE email = $1;";
+
+    const char* values[1];
+
+    values[0] = email.c_str();
+
+    PGresult* result = PQexecParams(
+        database.getConnection(),
+        query.c_str(),
+        1,
+        nullptr,
+        values,
+        nullptr,
+        nullptr,
+        0
+    );
+
+    if (PQresultStatus(result) != PGRES_TUPLES_OK)
+    {
+        std::cerr << "Failed to find user: "
+                  << PQerrorMessage(database.getConnection())
+                  << std::endl;
+
+        PQclear(result);
+        return user;
+    }
+
+    if (PQntuples(result) > 0)
+    {
+        user.id =
+            std::stoi(PQgetvalue(result, 0, 0));
+
+        user.name =
+            PQgetvalue(result, 0, 1);
+
+        user.email =
+            PQgetvalue(result, 0, 2);
+
+        user.passwordHash =
+            PQgetvalue(result, 0, 3);
+
+        user.role =
+            PQgetvalue(result, 0, 4);
+    }
+
+    PQclear(result);
+
+    return user;
+}
