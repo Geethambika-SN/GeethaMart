@@ -1,97 +1,162 @@
 #include <iostream>
 
-#include "controller/UserController.h"
+#include "controller/ProductController.h"
 
 int main()
 {
     std::cout << "GeethaMart Backend is starting..."
               << std::endl;
 
-    UserController controller;
+    ProductController controller;
 
     // --------------------------------------------------
-    // Test ADMIN Registration
+    // Test Product Creation
     // --------------------------------------------------
 
-    User admin;
+    Product product;
 
-    admin.name = "Test Admin";
-    admin.email = "testadmin@geethamart.com";
-    admin.password = "Admin@123";
-    admin.role = "ADMIN";
+    product.sellerId = 5;
+    product.name = "CRUD Test Laptop";
+    product.description = "Product CRUD verification";
+    product.priceCents = 50000;
+    product.quantity = 10;
+    product.category = "Electronics";
 
-    std::cout << "\nTesting ADMIN registration..."
+    std::cout << "\nTesting product creation..."
               << std::endl;
 
-    bool adminRegistered =
-        controller.registerUser(admin);
-
-    if (adminRegistered)
+    if (!controller.createProduct(product))
     {
-        std::cout << "ADMIN registration successful!"
+        std::cout << "Product creation failed."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Product creation successful!"
+              << std::endl;
+
+    // --------------------------------------------------
+    // Find the newly created product
+    // --------------------------------------------------
+
+    std::vector<Product> products =
+        controller.getAllProducts();
+
+    Product createdProduct;
+
+    for (const Product &item : products)
+    {
+        if (item.name == "CRUD Test Laptop")
+        {
+            createdProduct = item;
+            break;
+        }
+    }
+
+    if (createdProduct.id == 0)
+    {
+        std::cout << "Could not find created product."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "\nCreated Product:"
+              << std::endl;
+
+    std::cout << "ID: "
+              << createdProduct.id
+              << " | Name: "
+              << createdProduct.name
+              << " | Price Cents: "
+              << createdProduct.priceCents
+              << " | Quantity: "
+              << createdProduct.quantity
+              << std::endl;
+
+    // --------------------------------------------------
+    // Test Product Update
+    // --------------------------------------------------
+
+    createdProduct.name = "Updated CRUD Laptop";
+    createdProduct.priceCents = 75000;
+    createdProduct.quantity = 20;
+
+    std::cout << "\nTesting product update..."
+              << std::endl;
+
+    if (controller.updateProduct(createdProduct))
+    {
+        std::cout << "Product update successful!"
                   << std::endl;
     }
     else
     {
-        std::cout << "ADMIN already exists or registration failed."
+        std::cout << "Product update failed."
                   << std::endl;
+
+        return 1;
     }
 
     // --------------------------------------------------
-    // Test ADMIN Login
+    // Verify Update
     // --------------------------------------------------
 
-    std::cout << "\nTesting ADMIN login..."
+    Product updatedProduct =
+        controller.getProductById(createdProduct.id);
+
+    std::cout << "\nUpdated Product:"
               << std::endl;
 
-    User loggedInAdmin =
-        controller.loginUser(
-            "testadmin@geethamart.com",
-            "Admin@123");
+    std::cout << "ID: "
+              << updatedProduct.id
+              << " | Name: "
+              << updatedProduct.name
+              << " | Price Cents: "
+              << updatedProduct.priceCents
+              << " | Quantity: "
+              << updatedProduct.quantity
+              << std::endl;
 
-    if (loggedInAdmin.id != 0 &&
-        loggedInAdmin.role == "ADMIN")
+    // --------------------------------------------------
+    // Test Product Delete
+    // --------------------------------------------------
+
+    std::cout << "\nTesting product deletion..."
+              << std::endl;
+
+    if (controller.deleteProduct(createdProduct.id))
     {
-        std::cout << "ADMIN login successful!"
-                  << std::endl;
-
-        std::cout << "ID: "
-                  << loggedInAdmin.id
-                  << " | Name: "
-                  << loggedInAdmin.name
-                  << " | Email: "
-                  << loggedInAdmin.email
-                  << " | Role: "
-                  << loggedInAdmin.role
+        std::cout << "Product deletion successful!"
                   << std::endl;
     }
     else
     {
-        std::cout << "ADMIN login failed."
+        std::cout << "Product deletion failed."
                   << std::endl;
+
+        return 1;
     }
 
     // --------------------------------------------------
-    // Test ADMIN Wrong Password
+    // Verify Delete
     // --------------------------------------------------
 
-    std::cout << "\nTesting ADMIN login with wrong password..."
-              << std::endl;
+    Product deletedProduct =
+        controller.getProductById(createdProduct.id);
 
-    User wrongPasswordAdmin =
-        controller.loginUser(
-            "testadmin@geethamart.com",
-            "WrongPassword123");
-
-    if (wrongPasswordAdmin.id == 0)
+    if (deletedProduct.id == 0)
     {
-        std::cout << "ADMIN wrong password rejected successfully!"
+        std::cout << "Delete verification successful!"
                   << std::endl;
     }
     else
     {
-        std::cout << "ERROR: ADMIN wrong password was accepted!"
+        std::cout << "ERROR: Product still exists!"
                   << std::endl;
+
+        return 1;
     }
 
     return 0;

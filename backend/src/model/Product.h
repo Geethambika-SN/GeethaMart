@@ -7,9 +7,19 @@ class Product
 {
 public:
     int id = 0;
+
+    int sellerId = 0;
+
     std::string name = "";
-    double price = 0.0;
+
+    std::string description = "";
+
+    // Store money as integer minor units (cents).
+    long long priceCents = 0;
+
     int quantity = 0;
+
+    std::string category = "";
 };
 
 #endif

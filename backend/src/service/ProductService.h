@@ -3,6 +3,7 @@
 
 #include "../model/Product.h"
 #include "../repository/ProductRepository.h"
+
 #include <vector>
 
 class ProductService
@@ -11,15 +12,15 @@ private:
     ProductRepository repository;
 
 public:
-    bool addProduct(const Product &product, int sellerId);
+    bool addProduct(const Product &product);
 
     std::vector<Product> getAllProducts();
 
-    Product getProductById(int productId);
+    Product getProductById(int id);
 
-    bool updateProduct(int productId, const Product &product);
+    bool updateProduct(const Product &product);
 
-    bool deleteProduct(int productId);
+    bool deleteProduct(int id);
 };
 
 #endif

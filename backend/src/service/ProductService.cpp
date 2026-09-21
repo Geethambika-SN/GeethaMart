@@ -1,33 +1,38 @@
 #include "ProductService.h"
 
-bool ProductService::addProduct(const Product &product, int sellerId)
+bool ProductService::addProduct(const Product &product)
 {
-    if (sellerId <= 0)
-    {
-        return false;
-    }
-
+    // Validate product name
     if (product.name.empty())
     {
         return false;
     }
 
-    if (product.price <= 0)
+    // Validate seller
+    if (product.sellerId <= 0)
     {
         return false;
     }
 
+    // Validate price
+    if (product.priceCents <= 0)
+    {
+        return false;
+    }
+
+    // Validate stock quantity
     if (product.quantity < 0)
     {
         return false;
     }
 
-    if (!repository.sellerExists(sellerId))
+    // Validate category
+    if (product.category.empty())
     {
         return false;
     }
 
-    return repository.addProduct(product, sellerId);
+    return repository.addProduct(product);
 }
 
 std::vector<Product> ProductService::getAllProducts()
@@ -35,21 +40,19 @@ std::vector<Product> ProductService::getAllProducts()
     return repository.getAllProducts();
 }
 
-Product ProductService::getProductById(int productId)
+Product ProductService::getProductById(int id)
 {
-    if (productId <= 0)
+    if (id <= 0)
     {
         return Product{};
     }
 
-    return repository.getProductById(productId);
+    return repository.getProductById(id);
 }
 
-bool ProductService::updateProduct(
-    int productId,
-    const Product &product)
+bool ProductService::updateProduct(const Product &product)
 {
-    if (productId <= 0)
+    if (product.id <= 0)
     {
         return false;
     }
@@ -59,7 +62,12 @@ bool ProductService::updateProduct(
         return false;
     }
 
-    if (product.price <= 0)
+    if (product.sellerId <= 0)
+    {
+        return false;
+    }
+
+    if (product.priceCents <= 0)
     {
         return false;
     }
@@ -69,15 +77,20 @@ bool ProductService::updateProduct(
         return false;
     }
 
-    return repository.updateProduct(productId, product);
-}
-
-bool ProductService::deleteProduct(int productId)
-{
-    if (productId <= 0)
+    if (product.category.empty())
     {
         return false;
     }
 
-    return repository.deleteProduct(productId);
+    return repository.updateProduct(product);
+}
+
+bool ProductService::deleteProduct(int id)
+{
+    if (id <= 0)
+    {
+        return false;
+    }
+
+    return repository.deleteProduct(id);
 }

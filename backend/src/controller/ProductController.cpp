@@ -1,10 +1,9 @@
 #include "ProductController.h"
 
 bool ProductController::createProduct(
-    const Product &product,
-    int sellerId)
+    const Product &product)
 {
-    return service.addProduct(product, sellerId);
+    return service.addProduct(product);
 }
 
 std::vector<Product> ProductController::getAllProducts()
@@ -12,19 +11,18 @@ std::vector<Product> ProductController::getAllProducts()
     return service.getAllProducts();
 }
 
-Product ProductController::getProductById(int productId)
+Product ProductController::getProductById(int id)
 {
-    return service.getProductById(productId);
+    return service.getProductById(id);
 }
 
 bool ProductController::updateProduct(
-    int productId,
     const Product &product)
 {
-    return service.updateProduct(productId, product);
+    return service.updateProduct(product);
 }
 
-bool ProductController::deleteProduct(int productId)
+bool ProductController::deleteProduct(int id)
 {
-    return service.deleteProduct(productId);
+    return service.deleteProduct(id);
 }

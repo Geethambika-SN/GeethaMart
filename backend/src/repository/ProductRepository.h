@@ -2,20 +2,21 @@
 #define PRODUCT_REPOSITORY_H
 
 #include "../model/Product.h"
+
 #include <vector>
 
 class ProductRepository
 {
 public:
-    bool addProduct(const Product &product, int sellerId);
-    bool sellerExists(int sellerId);
+    bool addProduct(const Product &product);
 
     std::vector<Product> getAllProducts();
-    Product getProductById(int productId);
 
-    bool updateProduct(int productId, const Product &product);
+    Product getProductById(int id);
 
-    bool deleteProduct(int productId);
+    bool updateProduct(const Product &product);
+
+    bool deleteProduct(int id);
 };
 
 #endif
