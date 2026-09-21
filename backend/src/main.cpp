@@ -1,4 +1,7 @@
+
 #include <iostream>
+#include <vector>
+#include <limits>
 
 #include "controller/ProductController.h"
 
@@ -10,154 +13,169 @@ int main()
     ProductController controller;
 
     // --------------------------------------------------
-    // Test Product Creation
+    // Create test products
     // --------------------------------------------------
 
-    Product product;
+    Product laptop;
 
-    product.sellerId = 5;
-    product.name = "CRUD Test Laptop";
-    product.description = "Product CRUD verification";
-    product.priceCents = 50000;
-    product.quantity = 10;
-    product.category = "Electronics";
+    laptop.sellerId = 5;
+    laptop.name = "Search Test Laptop";
+    laptop.description = "Powerful laptop for testing search";
+    laptop.priceCents = 60000;
+    laptop.quantity = 10;
+    laptop.category = "Electronics";
 
-    std::cout << "\nTesting product creation..."
+    Product phone;
+
+    phone.sellerId = 5;
+    phone.name = "Search Test Phone";
+    phone.description = "Smart mobile phone";
+    phone.priceCents = 30000;
+    phone.quantity = 15;
+    phone.category = "Electronics";
+
+    Product chair;
+
+    chair.sellerId = 5;
+    chair.name = "Search Test Chair";
+    chair.description = "Comfortable office chair";
+    chair.priceCents = 8000;
+    chair.quantity = 20;
+    chair.category = "Furniture";
+
+    std::cout << "\nCreating test products..."
               << std::endl;
 
-    if (!controller.createProduct(product))
+    bool laptopCreated =
+        controller.createProduct(laptop);
+
+    bool phoneCreated =
+        controller.createProduct(phone);
+
+    bool chairCreated =
+        controller.createProduct(chair);
+
+    if (laptopCreated &&
+        phoneCreated &&
+        chairCreated)
     {
-        std::cout << "Product creation failed."
+        std::cout << "Test products created successfully!"
+                  << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to create one or more test products."
                   << std::endl;
 
         return 1;
     }
 
-    std::cout << "Product creation successful!"
+    // --------------------------------------------------
+    // Test Search
+    // --------------------------------------------------
+
+    std::cout << "\nTesting product search..."
               << std::endl;
 
+    std::vector<Product> searchResults =
+        controller.searchProducts("Laptop");
+
+    std::cout << "Search results: "
+              << searchResults.size()
+              << std::endl;
+
+    for (const Product &product : searchResults)
+    {
+        std::cout
+            << "ID: " << product.id
+            << " | Name: " << product.name
+            << " | Price Cents: " << product.priceCents
+            << " | Category: " << product.category
+            << std::endl;
+    }
+
+    if (!searchResults.empty())
+    {
+        std::cout << "Product search successful!"
+                  << std::endl;
+    }
+    else
+    {
+        std::cout << "Product search failed!"
+                  << std::endl;
+    }
+
     // --------------------------------------------------
-    // Find the newly created product
+    // Test Filter
+    // Electronics between 20,000 and 70,000 cents
     // --------------------------------------------------
 
-    std::vector<Product> products =
+    std::cout << "\nTesting product filter..."
+              << std::endl;
+
+    std::vector<Product> filterResults =
+        controller.filterProducts(
+            "Electronics",
+            20000,
+            70000);
+
+    std::cout << "Filter results: "
+              << filterResults.size()
+              << std::endl;
+
+    for (const Product &product : filterResults)
+    {
+        std::cout
+            << "ID: " << product.id
+            << " | Name: " << product.name
+            << " | Price Cents: " << product.priceCents
+            << " | Category: " << product.category
+            << std::endl;
+    }
+
+    if (!filterResults.empty())
+    {
+        std::cout << "Product filter successful!"
+                  << std::endl;
+    }
+    else
+    {
+        std::cout << "Product filter failed!"
+                  << std::endl;
+    }
+
+    // --------------------------------------------------
+    // Cleanup test products
+    // --------------------------------------------------
+
+    std::cout << "\nCleaning up test products..."
+              << std::endl;
+
+    std::vector<Product> allProducts =
         controller.getAllProducts();
 
-    Product createdProduct;
+    int deletedCount = 0;
 
-    for (const Product &item : products)
+    for (const Product &product : allProducts)
     {
-        if (item.name == "CRUD Test Laptop")
+        if (product.name == "Search Test Laptop" ||
+            product.name == "Search Test Phone" ||
+            product.name == "Search Test Chair")
         {
-            createdProduct = item;
-            break;
+            if (controller.deleteProduct(product.id))
+            {
+                deletedCount++;
+            }
         }
     }
 
-    if (createdProduct.id == 0)
-    {
-        std::cout << "Could not find created product."
-                  << std::endl;
-
-        return 1;
-    }
-
-    std::cout << "\nCreated Product:"
+    std::cout << "Test products deleted: "
+              << deletedCount
               << std::endl;
 
-    std::cout << "ID: "
-              << createdProduct.id
-              << " | Name: "
-              << createdProduct.name
-              << " | Price Cents: "
-              << createdProduct.priceCents
-              << " | Quantity: "
-              << createdProduct.quantity
+    std::cout << "\nSearch and filter testing completed."
               << std::endl;
-
-    // --------------------------------------------------
-    // Test Product Update
-    // --------------------------------------------------
-
-    createdProduct.name = "Updated CRUD Laptop";
-    createdProduct.priceCents = 75000;
-    createdProduct.quantity = 20;
-
-    std::cout << "\nTesting product update..."
-              << std::endl;
-
-    if (controller.updateProduct(createdProduct))
-    {
-        std::cout << "Product update successful!"
-                  << std::endl;
-    }
-    else
-    {
-        std::cout << "Product update failed."
-                  << std::endl;
-
-        return 1;
-    }
-
-    // --------------------------------------------------
-    // Verify Update
-    // --------------------------------------------------
-
-    Product updatedProduct =
-        controller.getProductById(createdProduct.id);
-
-    std::cout << "\nUpdated Product:"
-              << std::endl;
-
-    std::cout << "ID: "
-              << updatedProduct.id
-              << " | Name: "
-              << updatedProduct.name
-              << " | Price Cents: "
-              << updatedProduct.priceCents
-              << " | Quantity: "
-              << updatedProduct.quantity
-              << std::endl;
-
-    // --------------------------------------------------
-    // Test Product Delete
-    // --------------------------------------------------
-
-    std::cout << "\nTesting product deletion..."
-              << std::endl;
-
-    if (controller.deleteProduct(createdProduct.id))
-    {
-        std::cout << "Product deletion successful!"
-                  << std::endl;
-    }
-    else
-    {
-        std::cout << "Product deletion failed."
-                  << std::endl;
-
-        return 1;
-    }
-
-    // --------------------------------------------------
-    // Verify Delete
-    // --------------------------------------------------
-
-    Product deletedProduct =
-        controller.getProductById(createdProduct.id);
-
-    if (deletedProduct.id == 0)
-    {
-        std::cout << "Delete verification successful!"
-                  << std::endl;
-    }
-    else
-    {
-        std::cout << "ERROR: Product still exists!"
-                  << std::endl;
-
-        return 1;
-    }
 
     return 0;
 }
+

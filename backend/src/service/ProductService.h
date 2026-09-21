@@ -1,9 +1,11 @@
+
 #ifndef PRODUCT_SERVICE_H
 #define PRODUCT_SERVICE_H
 
 #include "../model/Product.h"
 #include "../repository/ProductRepository.h"
 
+#include <string>
 #include <vector>
 
 class ProductService
@@ -21,6 +23,15 @@ public:
     bool updateProduct(const Product &product);
 
     bool deleteProduct(int id);
+
+    std::vector<Product> searchProducts(
+        const std::string &searchTerm);
+
+    std::vector<Product> filterProducts(
+        const std::string &category,
+        long long minPriceCents,
+        long long maxPriceCents);
 };
 
 #endif
+

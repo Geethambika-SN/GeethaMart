@@ -1,3 +1,4 @@
+
 #include "ProductController.h"
 
 bool ProductController::createProduct(
@@ -26,3 +27,21 @@ bool ProductController::deleteProduct(int id)
 {
     return service.deleteProduct(id);
 }
+
+std::vector<Product> ProductController::searchProducts(
+    const std::string &searchTerm)
+{
+    return service.searchProducts(searchTerm);
+}
+
+std::vector<Product> ProductController::filterProducts(
+    const std::string &category,
+    long long minPriceCents,
+    long long maxPriceCents)
+{
+    return service.filterProducts(
+        category,
+        minPriceCents,
+        maxPriceCents);
+}
+

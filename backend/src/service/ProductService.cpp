@@ -1,3 +1,4 @@
+
 #include "ProductService.h"
 
 bool ProductService::addProduct(const Product &product)
@@ -50,7 +51,8 @@ Product ProductService::getProductById(int id)
     return repository.getProductById(id);
 }
 
-bool ProductService::updateProduct(const Product &product)
+bool ProductService::updateProduct(
+    const Product &product)
 {
     if (product.id <= 0)
     {
@@ -94,3 +96,44 @@ bool ProductService::deleteProduct(int id)
 
     return repository.deleteProduct(id);
 }
+
+std::vector<Product> ProductService::searchProducts(
+    const std::string &searchTerm)
+{
+    // Search term must not be empty
+    if (searchTerm.empty())
+    {
+        return {};
+    }
+
+    return repository.searchProducts(searchTerm);
+}
+
+std::vector<Product> ProductService::filterProducts(
+    const std::string &category,
+    long long minPriceCents,
+    long long maxPriceCents)
+{
+    // Price range validation
+    if (minPriceCents < 0)
+    {
+        return {};
+    }
+
+    if (maxPriceCents < minPriceCents)
+    {
+        return {};
+    }
+
+    // Category must not be empty
+    if (category.empty())
+    {
+        return {};
+    }
+
+    return repository.filterProducts(
+        category,
+        minPriceCents,
+        maxPriceCents);
+}
+
