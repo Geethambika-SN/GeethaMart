@@ -1,4 +1,3 @@
-
 #include "ProductService.h"
 
 bool ProductService::addProduct(const Product &product)
@@ -41,6 +40,17 @@ std::vector<Product> ProductService::getAllProducts()
     return repository.getAllProducts();
 }
 
+std::vector<Product> ProductService::getProductsBySeller(
+    int sellerId)
+{
+    if (sellerId <= 0)
+    {
+        return {};
+    }
+
+    return repository.getProductsBySeller(sellerId);
+}
+
 Product ProductService::getProductById(int id)
 {
     if (id <= 0)
@@ -52,49 +62,99 @@ Product ProductService::getProductById(int id)
 }
 
 bool ProductService::updateProduct(
-    const Product &product)
+    const Product &product,
+    int sellerId)
 {
+    // Validate seller identity
+    if (sellerId <= 0)
+    {
+        return false;
+    }
+
+    // Validate product ID
     if (product.id <= 0)
     {
         return false;
     }
 
+    // Check that the product exists
+    Product existingProduct =
+        repository.getProductById(product.id);
+
+    if (existingProduct.id == 0)
+    {
+        return false;
+    }
+
+    // Ownership check
+    if (existingProduct.sellerId != sellerId)
+    {
+        return false;
+    }
+
+    // Validate product name
     if (product.name.empty())
     {
         return false;
     }
 
-    if (product.sellerId <= 0)
-    {
-        return false;
-    }
-
+    // Validate price
     if (product.priceCents <= 0)
     {
         return false;
     }
 
+    // Validate stock quantity
     if (product.quantity < 0)
     {
         return false;
     }
 
+    // Validate category
     if (product.category.empty())
     {
         return false;
     }
 
-    return repository.updateProduct(product);
+    // Use the authenticated seller ID
+    Product updatedProduct = product;
+    updatedProduct.sellerId = sellerId;
+
+    return repository.updateProduct(updatedProduct);
 }
 
-bool ProductService::deleteProduct(int id)
+bool ProductService::deleteProduct(
+    int productId,
+    int sellerId)
 {
-    if (id <= 0)
+    // Validate seller identity
+    if (sellerId <= 0)
     {
         return false;
     }
 
-    return repository.deleteProduct(id);
+    // Validate product ID
+    if (productId <= 0)
+    {
+        return false;
+    }
+
+    // Check that the product exists
+    Product existingProduct =
+        repository.getProductById(productId);
+
+    if (existingProduct.id == 0)
+    {
+        return false;
+    }
+
+    // Ownership check
+    if (existingProduct.sellerId != sellerId)
+    {
+        return false;
+    }
+
+    return repository.deleteProduct(productId);
 }
 
 std::vector<Product> ProductService::searchProducts(
@@ -136,4 +196,3 @@ std::vector<Product> ProductService::filterProducts(
         minPriceCents,
         maxPriceCents);
 }
-

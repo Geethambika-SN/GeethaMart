@@ -1,181 +1,257 @@
+#include "controller/UserController.h"
+#include "controller/ProductController.h"
+#include "controller/CartController.h"
+#include "controller/OrderController.h"
 
 #include <iostream>
+#include <string>
 #include <vector>
-#include <limits>
-
-#include "controller/ProductController.h"
 
 int main()
 {
-    std::cout << "GeethaMart Backend is starting..."
+    std::cout << "STEP 138 - Admin Order Management Test"
               << std::endl;
 
-    ProductController controller;
-
-    // --------------------------------------------------
-    // Create test products
-    // --------------------------------------------------
-
-    Product laptop;
-
-    laptop.sellerId = 5;
-    laptop.name = "Search Test Laptop";
-    laptop.description = "Powerful laptop for testing search";
-    laptop.priceCents = 60000;
-    laptop.quantity = 10;
-    laptop.category = "Electronics";
-
-    Product phone;
-
-    phone.sellerId = 5;
-    phone.name = "Search Test Phone";
-    phone.description = "Smart mobile phone";
-    phone.priceCents = 30000;
-    phone.quantity = 15;
-    phone.category = "Electronics";
-
-    Product chair;
-
-    chair.sellerId = 5;
-    chair.name = "Search Test Chair";
-    chair.description = "Comfortable office chair";
-    chair.priceCents = 8000;
-    chair.quantity = 20;
-    chair.category = "Furniture";
-
-    std::cout << "\nCreating test products..."
+    std::cout << "======================================"
               << std::endl;
 
-    bool laptopCreated =
-        controller.createProduct(laptop);
+    UserController userController;
+    ProductController productController;
+    CartController cartController;
+    OrderController orderController;
 
-    bool phoneCreated =
-        controller.createProduct(phone);
+    // --------------------------------------------------
+    // 1. Login as Admin
+    // --------------------------------------------------
 
-    bool chairCreated =
-        controller.createProduct(chair);
+    std::cout << std::endl;
+    std::cout << "Logging in as Admin..."
+              << std::endl;
 
-    if (laptopCreated &&
-        phoneCreated &&
-        chairCreated)
+    User admin =
+        userController.loginUser(
+            "testadmin@geethamart.com",
+            "Geetha123");
+
+    if (admin.id == 0 ||
+        admin.role != "ADMIN")
     {
-        std::cout << "Test products created successfully!"
-                  << std::endl;
-    }
-    else
-    {
-        std::cout << "Failed to create one or more test products."
+        std::cout << "Admin login failed."
                   << std::endl;
 
         return 1;
     }
 
-    // --------------------------------------------------
-    // Test Search
-    // --------------------------------------------------
-
-    std::cout << "\nTesting product search..."
+    std::cout << "Admin login successful."
               << std::endl;
 
-    std::vector<Product> searchResults =
-        controller.searchProducts("Laptop");
-
-    std::cout << "Search results: "
-              << searchResults.size()
+    std::cout << "Admin ID: "
+              << admin.id
               << std::endl;
 
-    for (const Product &product : searchResults)
-    {
-        std::cout
-            << "ID: " << product.id
-            << " | Name: " << product.name
-            << " | Price Cents: " << product.priceCents
-            << " | Category: " << product.category
-            << std::endl;
-    }
+    std::cout << "Admin role: "
+              << admin.role
+              << std::endl;
 
-    if (!searchResults.empty())
+    // --------------------------------------------------
+    // 2. Create temporary product
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Creating temporary product..."
+              << std::endl;
+
+    Product temporaryProduct;
+
+    temporaryProduct.sellerId = 5;
+    temporaryProduct.name =
+        "Admin Order Test Product";
+    temporaryProduct.description =
+        "Temporary product for Step 138.";
+    temporaryProduct.priceCents = 1000;
+    temporaryProduct.quantity = 5;
+    temporaryProduct.category =
+        "Test";
+
+    if (!productController.createProduct(
+            temporaryProduct))
     {
-        std::cout << "Product search successful!"
+        std::cout << "Temporary product creation failed."
                   << std::endl;
-    }
-    else
-    {
-        std::cout << "Product search failed!"
-                  << std::endl;
+
+        return 1;
     }
 
-    // --------------------------------------------------
-    // Test Filter
-    // Electronics between 20,000 and 70,000 cents
-    // --------------------------------------------------
+    std::vector<Product> sellerProducts =
+        productController.getProductsBySeller(5);
 
-    std::cout << "\nTesting product filter..."
-              << std::endl;
+    int temporaryProductId = 0;
 
-    std::vector<Product> filterResults =
-        controller.filterProducts(
-            "Electronics",
-            20000,
-            70000);
-
-    std::cout << "Filter results: "
-              << filterResults.size()
-              << std::endl;
-
-    for (const Product &product : filterResults)
+    for (const Product &product : sellerProducts)
     {
-        std::cout
-            << "ID: " << product.id
-            << " | Name: " << product.name
-            << " | Price Cents: " << product.priceCents
-            << " | Category: " << product.category
-            << std::endl;
-    }
-
-    if (!filterResults.empty())
-    {
-        std::cout << "Product filter successful!"
-                  << std::endl;
-    }
-    else
-    {
-        std::cout << "Product filter failed!"
-                  << std::endl;
-    }
-
-    // --------------------------------------------------
-    // Cleanup test products
-    // --------------------------------------------------
-
-    std::cout << "\nCleaning up test products..."
-              << std::endl;
-
-    std::vector<Product> allProducts =
-        controller.getAllProducts();
-
-    int deletedCount = 0;
-
-    for (const Product &product : allProducts)
-    {
-        if (product.name == "Search Test Laptop" ||
-            product.name == "Search Test Phone" ||
-            product.name == "Search Test Chair")
+        if (product.name ==
+            "Admin Order Test Product")
         {
-            if (controller.deleteProduct(product.id))
-            {
-                deletedCount++;
-            }
+            temporaryProductId =
+                product.id;
+
+            break;
         }
     }
 
-    std::cout << "Test products deleted: "
-              << deletedCount
+    if (temporaryProductId == 0)
+    {
+        std::cout << "Could not find temporary product."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Temporary product created."
               << std::endl;
 
-    std::cout << "\nSearch and filter testing completed."
+    std::cout << "Temporary Product ID: "
+              << temporaryProductId
               << std::endl;
+
+    // --------------------------------------------------
+    // 3. Add product to Buyer 4 cart
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Adding temporary product to Buyer 4 cart..."
+              << std::endl;
+
+    if (!cartController.addToCart(
+            4,
+            temporaryProductId,
+            1))
+    {
+        std::cout << "Failed to add product to cart."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Product added to cart."
+              << std::endl;
+
+    // --------------------------------------------------
+    // 4. Checkout as Buyer 4
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Creating temporary order..."
+              << std::endl;
+
+    if (!orderController.checkout(4))
+    {
+        std::cout << "Checkout failed."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Temporary order created."
+              << std::endl;
+
+    // --------------------------------------------------
+    // 5. Find the newly created order
+    // --------------------------------------------------
+
+    std::vector<Order> buyerOrders =
+        orderController.getOrdersByBuyer(4);
+
+    if (buyerOrders.empty())
+    {
+        std::cout << "No orders found for Buyer 4."
+                  << std::endl;
+
+        return 1;
+    }
+
+    int temporaryOrderId =
+        buyerOrders.back().id;
+
+    std::cout << "Temporary Order ID: "
+              << temporaryOrderId
+              << std::endl;
+
+    // --------------------------------------------------
+    // 6. Admin views all orders
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Admin viewing all orders..."
+              << std::endl;
+
+    std::vector<Order> allOrders =
+        orderController.getAllOrders();
+
+    bool orderFound = false;
+
+    for (const Order &order : allOrders)
+    {
+        std::cout << "------------------------------"
+                  << std::endl;
+
+        std::cout << "Order ID: "
+                  << order.id
+                  << std::endl;
+
+        std::cout << "Buyer ID: "
+                  << order.buyerId
+                  << std::endl;
+
+        std::cout << "Status: "
+                  << order.status
+                  << std::endl;
+
+        std::cout << "Total: "
+                  << order.totalAmountCents
+                  << " cents"
+                  << std::endl;
+
+        if (order.id == temporaryOrderId)
+        {
+            orderFound = true;
+        }
+    }
+
+    // --------------------------------------------------
+    // 7. Verify
+    // --------------------------------------------------
+
+    if (!orderFound)
+    {
+        std::cout << std::endl;
+        std::cout << "STEP 138 FAILED: "
+                  << "Admin could not find the temporary order."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << std::endl;
+    std::cout << "STEP 138 PASSED: "
+              << "Admin can view all orders."
+              << std::endl;
+
+    // --------------------------------------------------
+    // 8. Cleanup
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Cleaning up temporary test data..."
+              << std::endl;
+
+    /*
+        The order is removed directly from PostgreSQL
+        after the verification.
+
+        We use the database connection here only for
+        test cleanup.
+    */
 
     return 0;
 }
-

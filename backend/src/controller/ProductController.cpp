@@ -1,4 +1,3 @@
-
 #include "ProductController.h"
 
 bool ProductController::createProduct(
@@ -12,20 +11,33 @@ std::vector<Product> ProductController::getAllProducts()
     return service.getAllProducts();
 }
 
+std::vector<Product> ProductController::getProductsBySeller(
+    int sellerId)
+{
+    return service.getProductsBySeller(sellerId);
+}
+
 Product ProductController::getProductById(int id)
 {
     return service.getProductById(id);
 }
 
 bool ProductController::updateProduct(
-    const Product &product)
+    const Product &product,
+    int sellerId)
 {
-    return service.updateProduct(product);
+    return service.updateProduct(
+        product,
+        sellerId);
 }
 
-bool ProductController::deleteProduct(int id)
+bool ProductController::deleteProduct(
+    int productId,
+    int sellerId)
 {
-    return service.deleteProduct(id);
+    return service.deleteProduct(
+        productId,
+        sellerId);
 }
 
 std::vector<Product> ProductController::searchProducts(
@@ -44,4 +56,3 @@ std::vector<Product> ProductController::filterProducts(
         minPriceCents,
         maxPriceCents);
 }
-

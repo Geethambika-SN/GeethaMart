@@ -9,23 +9,29 @@
 class ProductRepository
 {
 public:
-    bool addProduct(const Product &product);
+bool addProduct(const Product &product);
 
-    std::vector<Product> getAllProducts();
 
-    Product getProductById(int id);
+std::vector<Product> getAllProducts();
 
-    bool updateProduct(const Product &product);
+std::vector<Product> getProductsBySeller(
+    int sellerId);
 
-    bool deleteProduct(int id);
+Product getProductById(int id);
 
-    std::vector<Product> searchProducts(
-        const std::string &searchTerm);
+bool updateProduct(const Product &product);
 
-    std::vector<Product> filterProducts(
-        const std::string &category,
-        long long minPriceCents,
-        long long maxPriceCents);
+bool deleteProduct(int id);
+
+std::vector<Product> searchProducts(
+    const std::string &searchTerm);
+
+std::vector<Product> filterProducts(
+    const std::string &category,
+    long long minPriceCents,
+    long long maxPriceCents);
+
+
 };
 
 #endif

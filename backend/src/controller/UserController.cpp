@@ -11,3 +11,13 @@ User UserController::loginUser(
 {
     return service.loginUser(email, password);
 }
+
+std::vector<User> UserController::getAllUsers()
+{
+    return service.getAllUsers();
+}
+
+bool UserController::deleteUser(int userId)
+{
+    return service.deleteUser(userId);
+}

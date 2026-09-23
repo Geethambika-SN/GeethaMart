@@ -4,6 +4,9 @@
 #include "../model/User.h"
 #include "../repository/UserRepository.h"
 
+#include <string>
+#include <vector>
+
 class UserService
 {
 private:
@@ -15,6 +18,10 @@ public:
     User loginUser(
         const std::string &email,
         const std::string &password);
+
+    std::vector<User> getAllUsers();
+
+    bool deleteUser(int userId);
 };
 
 #endif

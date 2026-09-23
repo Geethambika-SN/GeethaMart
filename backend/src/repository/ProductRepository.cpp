@@ -1,4 +1,3 @@
-
 #include "ProductRepository.h"
 #include "../util/DatabaseConnection.h"
 
@@ -9,492 +8,598 @@
 
 bool ProductRepository::addProduct(const Product &product)
 {
-    DatabaseConnection database;
+DatabaseConnection database;
 
-    if (!database.connect())
-    {
-        return false;
-    }
 
-    const char *query =
-        "INSERT INTO products "
-        "(seller_id, name, description, price_cents, stock_qty, category) "
-        "VALUES ($1, $2, $3, $4, $5, $6);";
+if (!database.connect())
+{
+    return false;
+}
 
-    std::string sellerId =
-        std::to_string(product.sellerId);
+const char *query =
+    "INSERT INTO products "
+    "(seller_id, name, description, price_cents, stock_qty, category) "
+    "VALUES ($1, $2, $3, $4, $5, $6);";
 
-    std::string priceCents =
-        std::to_string(product.priceCents);
+std::string sellerId =
+    std::to_string(product.sellerId);
 
-    std::string quantity =
-        std::to_string(product.quantity);
+std::string priceCents =
+    std::to_string(product.priceCents);
 
-    const char *values[6] =
-    {
-        sellerId.c_str(),
-        product.name.c_str(),
-        product.description.c_str(),
-        priceCents.c_str(),
-        quantity.c_str(),
-        product.category.c_str()
-    };
+std::string quantity =
+    std::to_string(product.quantity);
 
-    PGresult *result = PQexecParams(
-        database.getConnection(),
-        query,
-        6,
-        nullptr,
-        values,
-        nullptr,
-        nullptr,
-        0
-    );
+const char *values[6] =
+{
+    sellerId.c_str(),
+    product.name.c_str(),
+    product.description.c_str(),
+    priceCents.c_str(),
+    quantity.c_str(),
+    product.category.c_str()
+};
 
-    if (PQresultStatus(result) == PGRES_COMMAND_OK)
-    {
-        PQclear(result);
+PGresult *result = PQexecParams(
+    database.getConnection(),
+    query,
+    6,
+    nullptr,
+    values,
+    nullptr,
+    nullptr,
+    0
+);
 
-        std::cout << "Product added successfully!"
-                  << std::endl;
-
-        return true;
-    }
-
-    std::cerr << "Failed to add product: "
-              << PQerrorMessage(database.getConnection())
-              << std::endl;
-
+if (PQresultStatus(result) == PGRES_COMMAND_OK)
+{
     PQclear(result);
 
-    return false;
+    std::cout << "Product added successfully!"
+              << std::endl;
+
+    return true;
+}
+
+std::cerr << "Failed to add product: "
+          << PQerrorMessage(database.getConnection())
+          << std::endl;
+
+PQclear(result);
+
+return false;
+
+
 }
 
 std::vector<Product> ProductRepository::getAllProducts()
 {
-    std::vector<Product> products;
+std::vector<Product> products;
 
-    DatabaseConnection database;
 
-    if (!database.connect())
-    {
-        return products;
-    }
+DatabaseConnection database;
 
-    const char *query =
-        "SELECT id, seller_id, name, description, "
-        "price_cents, stock_qty, category "
-        "FROM products "
-        "ORDER BY id;";
+if (!database.connect())
+{
+    return products;
+}
 
-    PGresult *result =
-        PQexec(database.getConnection(), query);
+const char *query =
+    "SELECT id, seller_id, name, description, "
+    "price_cents, stock_qty, category "
+    "FROM products "
+    "ORDER BY id;";
 
-    if (PQresultStatus(result) != PGRES_TUPLES_OK)
-    {
-        std::cerr << "Failed to get products: "
-                  << PQerrorMessage(database.getConnection())
-                  << std::endl;
+PGresult *result =
+    PQexec(database.getConnection(), query);
 
-        PQclear(result);
-
-        return products;
-    }
-
-    for (int row = 0; row < PQntuples(result); ++row)
-    {
-        Product product;
-
-        product.id =
-            std::stoi(PQgetvalue(result, row, 0));
-
-        product.sellerId =
-            std::stoi(PQgetvalue(result, row, 1));
-
-        product.name =
-            PQgetvalue(result, row, 2);
-
-        product.description =
-            PQgetvalue(result, row, 3);
-
-        product.priceCents =
-            std::stoll(PQgetvalue(result, row, 4));
-
-        product.quantity =
-            std::stoi(PQgetvalue(result, row, 5));
-
-        product.category =
-            PQgetvalue(result, row, 6);
-
-        products.push_back(product);
-    }
+if (PQresultStatus(result) != PGRES_TUPLES_OK)
+{
+    std::cerr << "Failed to get products: "
+              << PQerrorMessage(database.getConnection())
+              << std::endl;
 
     PQclear(result);
 
     return products;
 }
 
-Product ProductRepository::getProductById(int id)
+for (int row = 0; row < PQntuples(result); ++row)
 {
     Product product;
 
-    DatabaseConnection database;
+    product.id =
+        std::stoi(PQgetvalue(result, row, 0));
 
-    if (!database.connect())
-    {
-        return product;
-    }
+    product.sellerId =
+        std::stoi(PQgetvalue(result, row, 1));
 
-    const char *query =
-        "SELECT id, seller_id, name, description, "
-        "price_cents, stock_qty, category "
-        "FROM products "
-        "WHERE id = $1;";
+    product.name =
+        PQgetvalue(result, row, 2);
 
-    std::string idValue =
-        std::to_string(id);
+    product.description =
+        PQgetvalue(result, row, 3);
 
-    const char *values[1] =
-    {
-        idValue.c_str()
-    };
+    product.priceCents =
+        std::stoll(PQgetvalue(result, row, 4));
 
-    PGresult *result = PQexecParams(
-        database.getConnection(),
-        query,
-        1,
-        nullptr,
-        values,
-        nullptr,
-        nullptr,
-        0
-    );
+    product.quantity =
+        std::stoi(PQgetvalue(result, row, 5));
 
-    if (PQresultStatus(result) != PGRES_TUPLES_OK)
-    {
-        PQclear(result);
+    product.category =
+        PQgetvalue(result, row, 6);
 
-        return product;
-    }
+    products.push_back(product);
+}
 
-    if (PQntuples(result) > 0)
-    {
-        product.id =
-            std::stoi(PQgetvalue(result, 0, 0));
+PQclear(result);
 
-        product.sellerId =
-            std::stoi(PQgetvalue(result, 0, 1));
+return products;
 
-        product.name =
-            PQgetvalue(result, 0, 2);
 
-        product.description =
-            PQgetvalue(result, 0, 3);
+}
 
-        product.priceCents =
-            std::stoll(PQgetvalue(result, 0, 4));
+std::vector<Product> ProductRepository::getProductsBySeller(
+int sellerId)
+{
+std::vector<Product> products;
 
-        product.quantity =
-            std::stoi(PQgetvalue(result, 0, 5));
 
-        product.category =
-            PQgetvalue(result, 0, 6);
-    }
+DatabaseConnection database;
 
+if (!database.connect())
+{
+    return products;
+}
+
+const char *query =
+    "SELECT id, seller_id, name, description, "
+    "price_cents, stock_qty, category "
+    "FROM products "
+    "WHERE seller_id = $1 "
+    "ORDER BY id;";
+
+std::string sellerIdValue =
+    std::to_string(sellerId);
+
+const char *values[1] =
+{
+    sellerIdValue.c_str()
+};
+
+PGresult *result = PQexecParams(
+    database.getConnection(),
+    query,
+    1,
+    nullptr,
+    values,
+    nullptr,
+    nullptr,
+    0
+);
+
+if (PQresultStatus(result) != PGRES_TUPLES_OK)
+{
+    std::cerr << "Failed to get seller products: "
+              << PQerrorMessage(database.getConnection())
+              << std::endl;
+
+    PQclear(result);
+
+    return products;
+}
+
+for (int row = 0; row < PQntuples(result); ++row)
+{
+    Product product;
+
+    product.id =
+        std::stoi(PQgetvalue(result, row, 0));
+
+    product.sellerId =
+        std::stoi(PQgetvalue(result, row, 1));
+
+    product.name =
+        PQgetvalue(result, row, 2);
+
+    product.description =
+        PQgetvalue(result, row, 3);
+
+    product.priceCents =
+        std::stoll(PQgetvalue(result, row, 4));
+
+    product.quantity =
+        std::stoi(PQgetvalue(result, row, 5));
+
+    product.category =
+        PQgetvalue(result, row, 6);
+
+    products.push_back(product);
+}
+
+PQclear(result);
+
+return products;
+
+
+}
+
+Product ProductRepository::getProductById(int id)
+{
+Product product;
+
+
+DatabaseConnection database;
+
+if (!database.connect())
+{
+    return product;
+}
+
+const char *query =
+    "SELECT id, seller_id, name, description, "
+    "price_cents, stock_qty, category "
+    "FROM products "
+    "WHERE id = $1;";
+
+std::string idValue =
+    std::to_string(id);
+
+const char *values[1] =
+{
+    idValue.c_str()
+};
+
+PGresult *result = PQexecParams(
+    database.getConnection(),
+    query,
+    1,
+    nullptr,
+    values,
+    nullptr,
+    nullptr,
+    0
+);
+
+if (PQresultStatus(result) != PGRES_TUPLES_OK)
+{
     PQclear(result);
 
     return product;
 }
 
-bool ProductRepository::updateProduct(
-    const Product &product)
+if (PQntuples(result) > 0)
 {
-    DatabaseConnection database;
+    product.id =
+        std::stoi(PQgetvalue(result, 0, 0));
 
-    if (!database.connect())
-    {
-        return false;
-    }
+    product.sellerId =
+        std::stoi(PQgetvalue(result, 0, 1));
 
-    const char *query =
-        "UPDATE products "
-        "SET name = $1, "
-        "description = $2, "
-        "price_cents = $3, "
-        "stock_qty = $4, "
-        "category = $5 "
-        "WHERE id = $6;";
+    product.name =
+        PQgetvalue(result, 0, 2);
 
-    std::string priceCents =
-        std::to_string(product.priceCents);
+    product.description =
+        PQgetvalue(result, 0, 3);
 
-    std::string quantity =
-        std::to_string(product.quantity);
+    product.priceCents =
+        std::stoll(PQgetvalue(result, 0, 4));
 
-    std::string id =
-        std::to_string(product.id);
+    product.quantity =
+        std::stoi(PQgetvalue(result, 0, 5));
 
-    const char *values[6] =
-    {
-        product.name.c_str(),
-        product.description.c_str(),
-        priceCents.c_str(),
-        quantity.c_str(),
-        product.category.c_str(),
-        id.c_str()
-    };
+    product.category =
+        PQgetvalue(result, 0, 6);
+}
 
-    PGresult *result = PQexecParams(
-        database.getConnection(),
-        query,
-        6,
-        nullptr,
-        values,
-        nullptr,
-        nullptr,
-        0
-    );
+PQclear(result);
 
-    if (PQresultStatus(result) == PGRES_COMMAND_OK)
-    {
-        bool updated =
-            PQcmdTuples(result)[0] != '0';
+return product;
 
-        PQclear(result);
 
-        return updated;
-    }
+}
 
-    std::cerr << "Failed to update product: "
-              << PQerrorMessage(database.getConnection())
-              << std::endl;
+bool ProductRepository::updateProduct(
+const Product &product)
+{
+DatabaseConnection database;
+
+
+if (!database.connect())
+{
+    return false;
+}
+
+const char *query =
+    "UPDATE products "
+    "SET name = $1, "
+    "description = $2, "
+    "price_cents = $3, "
+    "stock_qty = $4, "
+    "category = $5 "
+    "WHERE id = $6;";
+
+std::string priceCents =
+    std::to_string(product.priceCents);
+
+std::string quantity =
+    std::to_string(product.quantity);
+
+std::string id =
+    std::to_string(product.id);
+
+const char *values[6] =
+{
+    product.name.c_str(),
+    product.description.c_str(),
+    priceCents.c_str(),
+    quantity.c_str(),
+    product.category.c_str(),
+    id.c_str()
+};
+
+PGresult *result = PQexecParams(
+    database.getConnection(),
+    query,
+    6,
+    nullptr,
+    values,
+    nullptr,
+    nullptr,
+    0
+);
+
+if (PQresultStatus(result) == PGRES_COMMAND_OK)
+{
+    bool updated =
+        PQcmdTuples(result)[0] != '0';
 
     PQclear(result);
 
-    return false;
+    return updated;
+}
+
+std::cerr << "Failed to update product: "
+          << PQerrorMessage(database.getConnection())
+          << std::endl;
+
+PQclear(result);
+
+return false;
+
+
 }
 
 bool ProductRepository::deleteProduct(int id)
 {
-    DatabaseConnection database;
+DatabaseConnection database;
 
-    if (!database.connect())
-    {
-        return false;
-    }
 
-    const char *query =
-        "DELETE FROM products "
-        "WHERE id = $1;";
+if (!database.connect())
+{
+    return false;
+}
 
-    std::string idValue =
-        std::to_string(id);
+const char *query =
+    "DELETE FROM products "
+    "WHERE id = $1;";
 
-    const char *values[1] =
-    {
-        idValue.c_str()
-    };
+std::string idValue =
+    std::to_string(id);
 
-    PGresult *result = PQexecParams(
-        database.getConnection(),
-        query,
-        1,
-        nullptr,
-        values,
-        nullptr,
-        nullptr,
-        0
-    );
+const char *values[1] =
+{
+    idValue.c_str()
+};
 
-    if (PQresultStatus(result) == PGRES_COMMAND_OK)
-    {
-        bool deleted =
-            PQcmdTuples(result)[0] != '0';
+PGresult *result = PQexecParams(
+    database.getConnection(),
+    query,
+    1,
+    nullptr,
+    values,
+    nullptr,
+    nullptr,
+    0
+);
 
-        PQclear(result);
+if (PQresultStatus(result) == PGRES_COMMAND_OK)
+{
+    bool deleted =
+        PQcmdTuples(result)[0] != '0';
 
-        return deleted;
-    }
+    PQclear(result);
 
-    std::cerr << "Failed to delete product: "
+    return deleted;
+}
+
+std::cerr << "Failed to delete product: "
+          << PQerrorMessage(database.getConnection())
+          << std::endl;
+
+PQclear(result);
+
+return false;
+
+
+}
+
+std::vector<Product> ProductRepository::searchProducts(
+const std::string &searchTerm)
+{
+std::vector<Product> products;
+
+
+DatabaseConnection database;
+
+if (!database.connect())
+{
+    return products;
+}
+
+const char *query =
+    "SELECT id, seller_id, name, description, "
+    "price_cents, stock_qty, category "
+    "FROM products "
+    "WHERE name ILIKE $1 "
+    "OR description ILIKE $1 "
+    "ORDER BY id;";
+
+std::string pattern =
+    "%" + searchTerm + "%";
+
+const char *values[1] =
+{
+    pattern.c_str()
+};
+
+PGresult *result = PQexecParams(
+    database.getConnection(),
+    query,
+    1,
+    nullptr,
+    values,
+    nullptr,
+    nullptr,
+    0
+);
+
+if (PQresultStatus(result) != PGRES_TUPLES_OK)
+{
+    std::cerr << "Failed to search products: "
               << PQerrorMessage(database.getConnection())
               << std::endl;
 
     PQclear(result);
 
-    return false;
+    return products;
 }
 
-std::vector<Product> ProductRepository::searchProducts(
-    const std::string &searchTerm)
+for (int row = 0; row < PQntuples(result); ++row)
 {
-    std::vector<Product> products;
+    Product product;
 
-    DatabaseConnection database;
+    product.id =
+        std::stoi(PQgetvalue(result, row, 0));
 
-    if (!database.connect())
-    {
-        return products;
-    }
+    product.sellerId =
+        std::stoi(PQgetvalue(result, row, 1));
 
-    const char *query =
-        "SELECT id, seller_id, name, description, "
-        "price_cents, stock_qty, category "
-        "FROM products "
-        "WHERE name ILIKE $1 "
-        "OR description ILIKE $1 "
-        "ORDER BY id;";
+    product.name =
+        PQgetvalue(result, row, 2);
 
-    std::string pattern =
-        "%" + searchTerm + "%";
+    product.description =
+        PQgetvalue(result, row, 3);
 
-    const char *values[1] =
-    {
-        pattern.c_str()
-    };
+    product.priceCents =
+        std::stoll(PQgetvalue(result, row, 4));
 
-    PGresult *result = PQexecParams(
-        database.getConnection(),
-        query,
-        1,
-        nullptr,
-        values,
-        nullptr,
-        nullptr,
-        0
-    );
+    product.quantity =
+        std::stoi(PQgetvalue(result, row, 5));
 
-    if (PQresultStatus(result) != PGRES_TUPLES_OK)
-    {
-        std::cerr << "Failed to search products: "
-                  << PQerrorMessage(database.getConnection())
-                  << std::endl;
+    product.category =
+        PQgetvalue(result, row, 6);
 
-        PQclear(result);
+    products.push_back(product);
+}
 
-        return products;
-    }
+PQclear(result);
 
-    for (int row = 0; row < PQntuples(result); ++row)
-    {
-        Product product;
+return products;
 
-        product.id =
-            std::stoi(PQgetvalue(result, row, 0));
 
-        product.sellerId =
-            std::stoi(PQgetvalue(result, row, 1));
-
-        product.name =
-            PQgetvalue(result, row, 2);
-
-        product.description =
-            PQgetvalue(result, row, 3);
-
-        product.priceCents =
-            std::stoll(PQgetvalue(result, row, 4));
-
-        product.quantity =
-            std::stoi(PQgetvalue(result, row, 5));
-
-        product.category =
-            PQgetvalue(result, row, 6);
-
-        products.push_back(product);
-    }
-
-    PQclear(result);
-
-    return products;
 }
 
 std::vector<Product> ProductRepository::filterProducts(
-    const std::string &category,
-    long long minPriceCents,
-    long long maxPriceCents)
+const std::string &category,
+long long minPriceCents,
+long long maxPriceCents)
 {
-    std::vector<Product> products;
+std::vector<Product> products;
 
-    DatabaseConnection database;
 
-    if (!database.connect())
-    {
-        return products;
-    }
+DatabaseConnection database;
 
-    const char *query =
-        "SELECT id, seller_id, name, description, "
-        "price_cents, stock_qty, category "
-        "FROM products "
-        "WHERE category = $1 "
-        "AND price_cents BETWEEN $2 AND $3 "
-        "ORDER BY price_cents;";
+if (!database.connect())
+{
+    return products;
+}
 
-    std::string minPrice =
-        std::to_string(minPriceCents);
+const char *query =
+    "SELECT id, seller_id, name, description, "
+    "price_cents, stock_qty, category "
+    "FROM products "
+    "WHERE category = $1 "
+    "AND price_cents BETWEEN $2 AND $3 "
+    "ORDER BY price_cents;";
 
-    std::string maxPrice =
-        std::to_string(maxPriceCents);
+std::string minPrice =
+    std::to_string(minPriceCents);
 
-    const char *values[3] =
-    {
-        category.c_str(),
-        minPrice.c_str(),
-        maxPrice.c_str()
-    };
+std::string maxPrice =
+    std::to_string(maxPriceCents);
 
-    PGresult *result = PQexecParams(
-        database.getConnection(),
-        query,
-        3,
-        nullptr,
-        values,
-        nullptr,
-        nullptr,
-        0
-    );
+const char *values[3] =
+{
+    category.c_str(),
+    minPrice.c_str(),
+    maxPrice.c_str()
+};
 
-    if (PQresultStatus(result) != PGRES_TUPLES_OK)
-    {
-        std::cerr << "Failed to filter products: "
-                  << PQerrorMessage(database.getConnection())
-                  << std::endl;
+PGresult *result = PQexecParams(
+    database.getConnection(),
+    query,
+    3,
+    nullptr,
+    values,
+    nullptr,
+    nullptr,
+    0
+);
 
-        PQclear(result);
-
-        return products;
-    }
-
-    for (int row = 0; row < PQntuples(result); ++row)
-    {
-        Product product;
-
-        product.id =
-            std::stoi(PQgetvalue(result, row, 0));
-
-        product.sellerId =
-            std::stoi(PQgetvalue(result, row, 1));
-
-        product.name =
-            PQgetvalue(result, row, 2);
-
-        product.description =
-            PQgetvalue(result, row, 3);
-
-        product.priceCents =
-            std::stoll(PQgetvalue(result, row, 4));
-
-        product.quantity =
-            std::stoi(PQgetvalue(result, row, 5));
-
-        product.category =
-            PQgetvalue(result, row, 6);
-
-        products.push_back(product);
-    }
+if (PQresultStatus(result) != PGRES_TUPLES_OK)
+{
+    std::cerr << "Failed to filter products: "
+              << PQerrorMessage(database.getConnection())
+              << std::endl;
 
     PQclear(result);
 
     return products;
+}
+
+for (int row = 0; row < PQntuples(result); ++row)
+{
+    Product product;
+
+    product.id =
+        std::stoi(PQgetvalue(result, row, 0));
+
+    product.sellerId =
+        std::stoi(PQgetvalue(result, row, 1));
+
+    product.name =
+        PQgetvalue(result, row, 2);
+
+    product.description =
+        PQgetvalue(result, row, 3);
+
+    product.priceCents =
+        std::stoll(PQgetvalue(result, row, 4));
+
+    product.quantity =
+        std::stoi(PQgetvalue(result, row, 5));
+
+    product.category =
+        PQgetvalue(result, row, 6);
+
+    products.push_back(product);
+}
+
+PQclear(result);
+
+return products;
+
+
 }
 

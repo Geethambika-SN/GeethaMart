@@ -1,4 +1,3 @@
-
 #ifndef PRODUCT_CONTROLLER_H
 #define PRODUCT_CONTROLLER_H
 
@@ -18,11 +17,18 @@ public:
 
     std::vector<Product> getAllProducts();
 
+    std::vector<Product> getProductsBySeller(
+        int sellerId);
+
     Product getProductById(int id);
 
-    bool updateProduct(const Product &product);
+    bool updateProduct(
+        const Product &product,
+        int sellerId);
 
-    bool deleteProduct(int id);
+    bool deleteProduct(
+        int productId,
+        int sellerId);
 
     std::vector<Product> searchProducts(
         const std::string &searchTerm);
@@ -34,4 +40,3 @@ public:
 };
 
 #endif
-
