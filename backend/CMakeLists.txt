@@ -5,55 +5,70 @@ project(GeethaMart)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# PostgreSQL
-
 set(PostgreSQL_ROOT "C:/Program Files/PostgreSQL/18")
 
-include_directories("${PostgreSQL_ROOT}/include")
-link_directories("${PostgreSQL_ROOT}/lib")
+# PostgreSQL
+include_directories(
+    "C:/Program Files/PostgreSQL/18/include"
+)
 
-# GeethaMart dependencies
+link_directories(
+    "C:/Program Files/PostgreSQL/18/lib"
+)
 
-set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../vcpkg_installed/x64-windows")
+# vcpkg libraries
+include_directories(
+    "${CMAKE_SOURCE_DIR}/../vcpkg_installed/x64-windows/include"
+)
 
-include_directories("${VCPKG_ROOT}/include")
-link_directories("${VCPKG_ROOT}/lib")
-
-# Backend executable
+link_directories(
+    "${CMAKE_SOURCE_DIR}/../vcpkg_installed/x64-windows/lib"
+)
 
 add_executable(GeethaMart
-src/main.cpp
 
+    src/main.cpp
 
-# Repository layer
-src/repository/ProductRepository.cpp
-src/repository/UserRepository.cpp
-src/repository/CartRepository.cpp
-src/repository/OrderRepository.cpp
+    # Utilities
+    src/util/DatabaseConnection.cpp
+    src/util/PasswordUtils.cpp
 
-# Service layer
-src/service/ProductService.cpp
-src/service/UserService.cpp
-src/service/CartService.cpp
-src/service/OrderService.cpp
+    # Models
+    src/model/Product.h
+    src/model/User.h
+    src/model/CartItem.h
+    src/model/Order.h
+    src/model/OrderItem.h
+    src/model/Review.h
 
-# Controller layer
-src/controller/ProductController.cpp
-src/controller/UserController.cpp
-src/controller/CartController.cpp
-src/controller/OrderController.cpp
+    # Product
+    src/repository/ProductRepository.cpp
+    src/service/ProductService.cpp
+    src/controller/ProductController.cpp
 
-# Utility layer
-src/util/DatabaseConnection.cpp
-src/util/PasswordUtils.cpp
+    # User
+    src/repository/UserRepository.cpp
+    src/service/UserService.cpp
+    src/controller/UserController.cpp
 
+    # Cart
+    src/repository/CartRepository.cpp
+    src/service/CartService.cpp
+    src/controller/CartController.cpp
 
+    # Order
+    src/repository/OrderRepository.cpp
+    src/service/OrderService.cpp
+    src/controller/OrderController.cpp
+
+    # Review
+    src/repository/ReviewRepository.cpp
+    src/service/ReviewService.cpp
+    src/controller/ReviewController.cpp
 )
 
-# Link libraries
-
-target_link_libraries(GeethaMart
-libpq
-libsodium
+target_link_libraries(
+    GeethaMart
+    libpq
+    libsodium
 )
-
