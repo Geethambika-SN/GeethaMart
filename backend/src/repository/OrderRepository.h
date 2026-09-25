@@ -4,6 +4,7 @@
 #include "../model/Order.h"
 #include "../model/OrderItem.h"
 
+#include <string>
 #include <vector>
 
 class OrderRepository
@@ -20,6 +21,10 @@ public:
         int orderId);
 
     std::vector<Order> getAllOrders();
+
+    bool updateOrderStatus(
+        int orderId,
+        const std::string &status);
 };
 
 #endif

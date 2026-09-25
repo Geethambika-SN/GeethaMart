@@ -339,3 +339,57 @@ std::vector<Order> OrderRepository::getAllOrders()
 
     return orders;
 }
+
+bool OrderRepository::updateOrderStatus(
+    int orderId,
+    const std::string &status)
+{
+    DatabaseConnection database;
+
+    if (!database.connect())
+    {
+        std::cerr << "Failed to connect to database."
+                  << std::endl;
+        return false;
+    }
+
+    std::string orderIdString =
+        std::to_string(orderId);
+
+    const char* values[2];
+
+    values[0] = status.c_str();
+    values[1] = orderIdString.c_str();
+
+    PGresult* result = PQexecParams(
+        database.getConnection(),
+        "UPDATE orders "
+        "SET status = $1 "
+        "WHERE id = $2;",
+        2,
+        nullptr,
+        values,
+        nullptr,
+        nullptr,
+        0
+    );
+
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "Failed to update order status: "
+                  << PQerrorMessage(
+                         database.getConnection())
+                  << std::endl;
+
+        PQclear(result);
+        return false;
+    }
+
+    bool updated =
+        std::stoi(
+            PQcmdTuples(result)) > 0;
+
+    PQclear(result);
+
+    return updated;
+}

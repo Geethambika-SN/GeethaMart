@@ -23,3 +23,12 @@ std::vector<Order> OrderController::getAllOrders()
 {
     return service.getAllOrders();
 }
+
+bool OrderController::updateOrderStatus(
+    int orderId,
+    const std::string &status)
+{
+    return service.updateOrderStatus(
+        orderId,
+        status);
+}

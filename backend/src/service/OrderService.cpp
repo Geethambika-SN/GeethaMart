@@ -137,3 +137,26 @@ std::vector<Order> OrderService::getAllOrders()
 {
     return repository.getAllOrders();
 }
+
+bool OrderService::updateOrderStatus(
+    int orderId,
+    const std::string &status)
+{
+    if (orderId <= 0)
+    {
+        return false;
+    }
+
+    if (status != "PENDING" &&
+        status != "CONFIRMED" &&
+        status != "SHIPPED" &&
+        status != "DELIVERED" &&
+        status != "CANCELLED")
+    {
+        return false;
+    }
+
+    return repository.updateOrderStatus(
+        orderId,
+        status);
+}
