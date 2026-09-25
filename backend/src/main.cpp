@@ -1,60 +1,84 @@
 #include "controller/UserController.h"
 #include "controller/ProductController.h"
-#include "controller/CartController.h"
-#include "controller/OrderController.h"
+#include "controller/ReviewController.h"
 
 #include <iostream>
-#include <string>
 #include <vector>
 
 int main()
 {
-    std::cout << "STEP 138 - Admin Order Management Test"
+    std::cout << "STEP 149 - Review and Rating Test"
               << std::endl;
 
-    std::cout << "======================================"
+    std::cout << "========================================"
               << std::endl;
 
     UserController userController;
     ProductController productController;
-    CartController cartController;
-    OrderController orderController;
+    ReviewController reviewController;
 
     // --------------------------------------------------
-    // 1. Login as Admin
+    // 1. Create temporary Buyer
     // --------------------------------------------------
 
     std::cout << std::endl;
-    std::cout << "Logging in as Admin..."
+    std::cout << "Creating temporary Buyer..."
               << std::endl;
 
-    User admin =
-        userController.loginUser(
-            "testadmin@geethamart.com",
-            "Geetha123");
+    User temporaryBuyer;
 
-    if (admin.id == 0 ||
-        admin.role != "ADMIN")
+    temporaryBuyer.name =
+        "Review Test Buyer";
+
+    temporaryBuyer.email =
+        "reviewtest@geethamart.com";
+
+    temporaryBuyer.password =
+        "Geetha123";
+
+    temporaryBuyer.role =
+        "BUYER";
+
+    if (!userController.registerUser(
+            temporaryBuyer))
     {
-        std::cout << "Admin login failed."
+        std::cout << "Temporary Buyer creation failed."
                   << std::endl;
 
         return 1;
     }
 
-    std::cout << "Admin login successful."
+    // --------------------------------------------------
+    // 2. Login as temporary Buyer
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Logging in as temporary Buyer..."
               << std::endl;
 
-    std::cout << "Admin ID: "
-              << admin.id
+    User buyer =
+        userController.loginUser(
+            "reviewtest@geethamart.com",
+            "Geetha123");
+
+    if (buyer.id == 0 ||
+        buyer.role != "BUYER")
+    {
+        std::cout << "Temporary Buyer login failed."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Temporary Buyer login successful."
               << std::endl;
 
-    std::cout << "Admin role: "
-              << admin.role
+    std::cout << "Temporary Buyer ID: "
+              << buyer.id
               << std::endl;
 
     // --------------------------------------------------
-    // 2. Create temporary product
+    // 3. Create temporary product
     // --------------------------------------------------
 
     std::cout << std::endl;
@@ -65,13 +89,12 @@ int main()
 
     temporaryProduct.sellerId = 5;
     temporaryProduct.name =
-        "Admin Order Test Product";
+        "Review Test Product";
     temporaryProduct.description =
-        "Temporary product for Step 138.";
-    temporaryProduct.priceCents = 1000;
-    temporaryProduct.quantity = 5;
-    temporaryProduct.category =
-        "Test";
+        "Temporary product for Step 149.";
+    temporaryProduct.priceCents = 1500;
+    temporaryProduct.quantity = 10;
+    temporaryProduct.category = "Test";
 
     if (!productController.createProduct(
             temporaryProduct))
@@ -90,7 +113,7 @@ int main()
     for (const Product &product : sellerProducts)
     {
         if (product.name ==
-            "Admin Order Test Product")
+            "Review Test Product")
         {
             temporaryProductId =
                 product.id;
@@ -115,143 +138,368 @@ int main()
               << std::endl;
 
     // --------------------------------------------------
-    // 3. Add product to Buyer 4 cart
+    // 4. Add review
     // --------------------------------------------------
 
     std::cout << std::endl;
-    std::cout << "Adding temporary product to Buyer 4 cart..."
+    std::cout << "Adding review..."
               << std::endl;
 
-    if (!cartController.addToCart(
-            4,
-            temporaryProductId,
-            1))
+    Review review;
+
+    review.productId =
+        temporaryProductId;
+
+    review.userId =
+        buyer.id;
+
+    review.rating =
+        5;
+
+    review.comment =
+        "Excellent product.";
+
+    if (!reviewController.addReview(
+            review))
     {
-        std::cout << "Failed to add product to cart."
+        std::cout << "Failed to add review."
                   << std::endl;
 
         return 1;
     }
 
-    std::cout << "Product added to cart."
+    std::cout << "Review added successfully."
               << std::endl;
 
     // --------------------------------------------------
-    // 4. Checkout as Buyer 4
+    // 5. Get reviews for product
     // --------------------------------------------------
 
     std::cout << std::endl;
-    std::cout << "Creating temporary order..."
+    std::cout << "Getting reviews for product..."
               << std::endl;
 
-    if (!orderController.checkout(4))
+    std::vector<Review> productReviews =
+        reviewController.getReviewsByProduct(
+            temporaryProductId);
+
+    if (productReviews.empty())
     {
-        std::cout << "Checkout failed."
+        std::cout << "No reviews found."
                   << std::endl;
 
         return 1;
     }
 
-    std::cout << "Temporary order created."
+    int reviewId =
+        productReviews.back().id;
+
+    std::cout << "Review found."
+              << std::endl;
+
+    std::cout << "Review ID: "
+              << reviewId
+              << std::endl;
+
+    std::cout << "Rating: "
+              << productReviews.back().rating
+              << std::endl;
+
+    std::cout << "Comment: "
+              << productReviews.back().comment
               << std::endl;
 
     // --------------------------------------------------
-    // 5. Find the newly created order
-    // --------------------------------------------------
-
-    std::vector<Order> buyerOrders =
-        orderController.getOrdersByBuyer(4);
-
-    if (buyerOrders.empty())
-    {
-        std::cout << "No orders found for Buyer 4."
-                  << std::endl;
-
-        return 1;
-    }
-
-    int temporaryOrderId =
-        buyerOrders.back().id;
-
-    std::cout << "Temporary Order ID: "
-              << temporaryOrderId
-              << std::endl;
-
-    // --------------------------------------------------
-    // 6. Admin views all orders
+    // 6. Get reviews by user
     // --------------------------------------------------
 
     std::cout << std::endl;
-    std::cout << "Admin viewing all orders..."
+    std::cout << "Getting reviews by Buyer..."
               << std::endl;
 
-    std::vector<Order> allOrders =
-        orderController.getAllOrders();
+    std::vector<Review> userReviews =
+        reviewController.getReviewsByUser(
+            buyer.id);
 
-    bool orderFound = false;
+    bool userReviewFound = false;
 
-    for (const Order &order : allOrders)
+    for (const Review &userReview :
+         userReviews)
     {
-        std::cout << "------------------------------"
-                  << std::endl;
-
-        std::cout << "Order ID: "
-                  << order.id
-                  << std::endl;
-
-        std::cout << "Buyer ID: "
-                  << order.buyerId
-                  << std::endl;
-
-        std::cout << "Status: "
-                  << order.status
-                  << std::endl;
-
-        std::cout << "Total: "
-                  << order.totalAmountCents
-                  << " cents"
-                  << std::endl;
-
-        if (order.id == temporaryOrderId)
+        if (userReview.id == reviewId)
         {
-            orderFound = true;
+            userReviewFound = true;
+            break;
         }
     }
 
-    // --------------------------------------------------
-    // 7. Verify
-    // --------------------------------------------------
-
-    if (!orderFound)
+    if (!userReviewFound)
     {
-        std::cout << std::endl;
-        std::cout << "STEP 138 FAILED: "
-                  << "Admin could not find the temporary order."
+        std::cout << "User review was not found."
                   << std::endl;
 
         return 1;
     }
 
-    std::cout << std::endl;
-    std::cout << "STEP 138 PASSED: "
-              << "Admin can view all orders."
+    std::cout << "User review found successfully."
               << std::endl;
 
     // --------------------------------------------------
-    // 8. Cleanup
+    // 7. Update review
     // --------------------------------------------------
 
     std::cout << std::endl;
-    std::cout << "Cleaning up temporary test data..."
+    std::cout << "Updating review..."
               << std::endl;
 
-    /*
-        The order is removed directly from PostgreSQL
-        after the verification.
+    Review updatedReview;
 
-        We use the database connection here only for
-        test cleanup.
-    */
+    updatedReview.id =
+        reviewId;
+
+    updatedReview.productId =
+        temporaryProductId;
+
+    updatedReview.userId =
+        buyer.id;
+
+    updatedReview.rating =
+        4;
+
+    updatedReview.comment =
+        "Good product after testing.";
+
+    if (!reviewController.updateReview(
+            updatedReview))
+    {
+        std::cout << "Failed to update review."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Review updated successfully."
+              << std::endl;
+
+    // --------------------------------------------------
+    // 8. Verify updated review
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Verifying updated review..."
+              << std::endl;
+
+    std::vector<Review> updatedReviews =
+        reviewController.getReviewsByProduct(
+            temporaryProductId);
+
+    bool updateCorrect = false;
+
+    for (const Review &updated :
+         updatedReviews)
+    {
+        if (updated.id == reviewId)
+        {
+            std::cout << "Updated rating: "
+                      << updated.rating
+                      << std::endl;
+
+            std::cout << "Updated comment: "
+                      << updated.comment
+                      << std::endl;
+
+            if (updated.rating == 4 &&
+                updated.comment ==
+                    "Good product after testing.")
+            {
+                updateCorrect = true;
+            }
+
+            break;
+        }
+    }
+
+    if (!updateCorrect)
+    {
+        std::cout << "Review update verification failed."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Review update verified."
+              << std::endl;
+
+    // --------------------------------------------------
+    // 9. Test invalid rating
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Testing invalid rating..."
+              << std::endl;
+
+    Review invalidReview;
+
+    invalidReview.productId =
+        temporaryProductId;
+
+    invalidReview.userId =
+        buyer.id;
+
+    invalidReview.rating =
+        6;
+
+    invalidReview.comment =
+        "Invalid rating test.";
+
+    if (reviewController.addReview(
+            invalidReview))
+    {
+        std::cout << "STEP 149 FAILED: "
+                  << "Invalid rating was accepted."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Invalid rating correctly rejected."
+              << std::endl;
+
+    // --------------------------------------------------
+    // 10. Test ownership protection
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Testing review ownership protection..."
+              << std::endl;
+
+    Review unauthorizedUpdate;
+
+    unauthorizedUpdate.id =
+        reviewId;
+
+    unauthorizedUpdate.productId =
+        temporaryProductId;
+
+    unauthorizedUpdate.userId =
+        5;
+
+    unauthorizedUpdate.rating =
+        1;
+
+    unauthorizedUpdate.comment =
+        "Unauthorized update.";
+
+    if (reviewController.updateReview(
+            unauthorizedUpdate))
+    {
+        std::cout << "STEP 149 FAILED: "
+                  << "Unauthorized review update was accepted."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Unauthorized update correctly rejected."
+              << std::endl;
+
+    if (reviewController.deleteReview(
+            reviewId,
+            5))
+    {
+        std::cout << "STEP 149 FAILED: "
+                  << "Unauthorized review deletion was accepted."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Unauthorized deletion correctly rejected."
+              << std::endl;
+
+    // --------------------------------------------------
+    // 11. Delete review
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Deleting review..."
+              << std::endl;
+
+    if (!reviewController.deleteReview(
+            reviewId,
+            buyer.id))
+    {
+        std::cout << "Failed to delete review."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Review deleted successfully."
+              << std::endl;
+
+    // --------------------------------------------------
+    // 12. Verify deletion
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+    std::cout << "Verifying review deletion..."
+              << std::endl;
+
+    std::vector<Review> remainingReviews =
+        reviewController.getReviewsByProduct(
+            temporaryProductId);
+
+    bool reviewStillExists = false;
+
+    for (const Review &remaining :
+         remainingReviews)
+    {
+        if (remaining.id == reviewId)
+        {
+            reviewStillExists = true;
+            break;
+        }
+    }
+
+    if (reviewStillExists)
+    {
+        std::cout << "STEP 149 FAILED: "
+                  << "Review still exists after deletion."
+                  << std::endl;
+
+        return 1;
+    }
+
+    std::cout << "Review deletion verified."
+              << std::endl;
+
+    // --------------------------------------------------
+    // 13. Final result
+    // --------------------------------------------------
+
+    std::cout << std::endl;
+
+    std::cout << "STEP 149 PASSED: "
+              << "Review and rating management works correctly."
+              << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << "Temporary Buyer ID: "
+              << buyer.id
+              << std::endl;
+
+    std::cout << "Temporary Product ID: "
+              << temporaryProductId
+              << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << "IMPORTANT: "
+              << "Temporary Buyer and product must be cleaned "
+              << "from PostgreSQL after the test."
+              << std::endl;
 
     return 0;
 }
